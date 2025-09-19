@@ -1,0 +1,40 @@
+# Rust
+/target/
+Cargo.lock
+*.rs.bk
+*.pdb
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# Logs
+*.log
+
+# Testing
+/tmp/
+
+# Benchmarks
+criterion/
+
+# Environment variables
+.env
+.env.local
+
+# Documentation build
+/book/
+
+# Claude configuration (keep for development)
+# .claude/
