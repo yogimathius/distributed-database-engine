@@ -1,0 +1,15 @@
+[package]
+name = "nextdb-query"
+version = "0.1.0"
+edition = "2021"
+description = "SQL query engine for NextDB"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
