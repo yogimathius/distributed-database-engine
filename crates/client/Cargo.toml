@@ -1,0 +1,16 @@
+[package]
+name = "nextdb-client"
+version = "0.1.0"
+edition = "2021"
+description = "Client library for NextDB"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
