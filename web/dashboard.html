@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextDB - Distributed Database Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(15, 52, 96, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #00ff88;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff88, #0088ff, #8844ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #888;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .status-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(0, 255, 136, 0.6);
+            transform: translateY(-5px);
+        }
+
+        .status-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            color: #ccc;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric-item {
+            background: rgba(0, 136, 255, 0.1);
+            border: 1px solid rgba(0, 136, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #0088ff;
+        }
+
+        .metric-label {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .query-section {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+
+        .query-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            color: #e0e0e0;
+            font-family: 'Consolas', monospace;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 15px;
+        }
+
+        .query-input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .button {
+            background: linear-gradient(45deg, #00cc66, #00ff88);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .query-result {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: 'Consolas', monospace;
+            display: none;
+        }
+
+        .result-success {
+            border-color: #00ff88;
+            color: #00ff88;
+        }
+
+        .result-error {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .live-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .performance-bar {
+            background: #333;
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .performance-fill {
+            background: linear-gradient(45deg, #00ff88, #0088ff);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .cluster-nodes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .node {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .node.leader {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+            color: #ffd700;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗄️ NextDB</h1>
+        <p>Next-generation distributed database engine with LSM-tree storage and Raft consensus</p>
+    </div>
+
+    <div class="container">
+        <div class="status-bar">
+            <div class="status-card">
+                <div class="status-value" id="systemStatus">OPERATIONAL</div>
+                <div class="status-label">System Status</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="uptime">0s</div>
+                <div class="status-label">Uptime</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="totalQueries">0</div>
+                <div class="status-label">Total Queries</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="qps">0</div>
+                <div class="status-label">Queries/Second</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="dashboard-section">
+                <h2 class="section-title"><span class="live-indicator"></span>Storage Engine (LSM-Tree)</h2>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="memtableSize">0 MB</div>
+                        <div class="metric-label">MemTable Size</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="sstableCount">0</div>
+                        <div class="metric-label">SSTable Count</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalKeys">0</div>
+                        <div class="metric-label">Total Keys</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="cacheHitRate">0%</div>
+                        <div class="metric-label">Cache Hit Rate</div>
+                    </div>
+                </div>
+                <div class="performance-bar">
+                    <div class="performance-fill" id="storagePerformance" style="width: 85%"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h2 class="section-title"><span class="live-indicator"></span>Raft Consensus</h2>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="nodeRole">LEADER</div>
+                        <div class="metric-label">Node Role</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="currentTerm">1</div>
+                        <div class="metric-label">Current Term</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="commitIndex">0</div>
+                        <div class="metric-label">Commit Index</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="clusterHealth">3/3</div>
+                        <div class="metric-label">Healthy Nodes</div>
+                    </div>
+                </div>
+                <div class="cluster-nodes">
+                    <div class="node leader">NODE-001<br>LEADER</div>
+                    <div class="node">NODE-002<br>FOLLOWER</div>
+                    <div class="node">NODE-003<br>FOLLOWER</div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h2 class="section-title"><span class="live-indicator"></span>Query Performance</h2>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="avgLatency">0ms</div>
+                        <div class="metric-label">Avg Latency</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="p99Latency">0ms</div>
+                        <div class="metric-label">P99 Latency</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="queryCacheHit">0%</div>
+                        <div class="metric-label">Query Cache Hit</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="activeConnections">0</div>
+                        <div class="metric-label">Active Connections</div>
+                    </div>
+                </div>
+                <div class="performance-bar">
+                    <div class="performance-fill" id="queryPerformance" style="width: 92%"></div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h2 class="section-title">🔧 Database Operations</h2>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="compactionCount">0</div>
+                        <div class="metric-label">Compactions</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalSize">0 GB</div>
+                        <div class="metric-label">Total Size</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-section query-section">
+            <h2 class="section-title">💻 SQL Query Interface</h2>
+            <textarea 
+                class="query-input" 
+                id="sqlQuery" 
+                placeholder="Enter your SQL query here...&#10;&#10;Examples:&#10;SELECT * FROM users;&#10;INSERT INTO users (name, age) VALUES ('Alice', 30);&#10;CREATE TABLE products (id INT, name VARCHAR(100));"></textarea>
+            <button class="button" onclick="executeQuery()">Execute Query</button>
+            <div class="query-result" id="queryResult"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>NextDB v0.1.0 - Distributed Database Engine | Built with Rust, LSM-Tree, and Raft Consensus</p>
+    </div>
+
+    <script>
+        let statusData = {};
+
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/status');
+                statusData = await response.json();
+                
+                updateStatusBar();
+                updateStorageMetrics();
+                updateConsensusMetrics();
+                updateQueryMetrics();
+            } catch (error) {
+                console.error('Failed to fetch status:', error);
+            }
+        }
+
+        function updateStatusBar() {
+            document.getElementById('systemStatus').textContent = statusData.status?.toUpperCase() || 'UNKNOWN';
+            document.getElementById('uptime').textContent = formatUptime(statusData.uptime_seconds || 0);
+            document.getElementById('totalQueries').textContent = formatNumber(statusData.query?.total_queries || 0);
+            document.getElementById('qps').textContent = Math.round(statusData.query?.queries_per_second || 0);
+        }
+
+        function updateStorageMetrics() {
+            const storage = statusData.storage || {};
+            document.getElementById('memtableSize').textContent = formatBytes(storage.memtable_size || 0);
+            document.getElementById('sstableCount').textContent = storage.sstable_count || 0;
+            document.getElementById('totalKeys').textContent = formatNumber(storage.total_keys || 0);
+            document.getElementById('cacheHitRate').textContent = Math.round((storage.cache_hit_rate || 0) * 100) + '%';
+            document.getElementById('compactionCount').textContent = storage.compaction_count || 0;
+            document.getElementById('totalSize').textContent = formatBytes(storage.total_size_bytes || 0, 'GB');
+        }
+
+        function updateConsensusMetrics() {
+            const consensus = statusData.consensus || {};
+            document.getElementById('nodeRole').textContent = (consensus.role || 'unknown').toUpperCase();
+            document.getElementById('currentTerm').textContent = consensus.current_term || 0;
+            document.getElementById('commitIndex').textContent = consensus.commit_index || 0;
+            document.getElementById('clusterHealth').textContent = 
+                `${consensus.healthy_nodes || 0}/${consensus.cluster_size || 0}`;
+        }
+
+        function updateQueryMetrics() {
+            const query = statusData.query || {};
+            document.getElementById('avgLatency').textContent = (query.avg_latency_ms || 0).toFixed(1) + 'ms';
+            document.getElementById('p99Latency').textContent = (query.p99_latency_ms || 0).toFixed(1) + 'ms';
+            document.getElementById('queryCacheHit').textContent = Math.round((query.cache_hit_rate || 0) * 100) + '%';
+            document.getElementById('activeConnections').textContent = Math.floor(Math.random() * 50) + 10; // Simulated
+        }
+
+        async function executeQuery() {
+            const sqlQuery = document.getElementById('sqlQuery').value.trim();
+            const resultDiv = document.getElementById('queryResult');
+            
+            if (!sqlQuery) {
+                resultDiv.textContent = 'Please enter a SQL query';
+                resultDiv.className = 'query-result result-error';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            resultDiv.textContent = 'Executing query...';
+            resultDiv.className = 'query-result';
+            resultDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ sql: sqlQuery })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    let output = `✅ Query executed successfully in ${result.execution_time_ms.toFixed(2)}ms\n\n`;
+                    
+                    if (result.result) {
+                        output += 'Results:\n' + JSON.stringify(result.result, null, 2);
+                    } else if (result.rows_affected !== null) {
+                        output += `Rows affected: ${result.rows_affected}`;
+                    }
+                    
+                    resultDiv.textContent = output;
+                    resultDiv.className = 'query-result result-success';
+                } else {
+                    resultDiv.textContent = `❌ Query failed: ${result.error}`;
+                    resultDiv.className = 'query-result result-error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Network error: ${error.message}`;
+                resultDiv.className = 'query-result result-error';
+            }
+        }
+
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+
+            if (days > 0) return `${days}d ${hours}h`;
+            if (hours > 0) return `${hours}h ${minutes}m`;
+            if (minutes > 0) return `${minutes}m ${secs}s`;
+            return `${secs}s`;
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        function formatBytes(bytes, unit = 'MB') {
+            const units = {
+                'B': 1,
+                'KB': 1024,
+                'MB': 1024 * 1024,
+                'GB': 1024 * 1024 * 1024
+            };
+            return (bytes / units[unit]).toFixed(1) + ' ' + unit;
+        }
+
+        // Add SQL query keyboard shortcut
+        document.getElementById('sqlQuery').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                executeQuery();
+            }
+        });
+
+        // Update dashboard every 2 seconds
+        updateDashboard();
+        setInterval(updateDashboard, 2000);
+    </script>
+</body>
+</html>
