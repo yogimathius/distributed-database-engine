@@ -1,0 +1,17 @@
+[package]
+name = "nextdb-transaction"
+version = "0.1.0"
+edition = "2021"
+description = "Transaction management for NextDB"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
+dashmap = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
