@@ -27,6 +27,3 @@ Next-generation distributed database engine with LSM-tree storage and Raft conse
 - Run the detected tests in CI and track flakiness, duration, and coverage
 - Validate runtime claims in this README against current behavior and deployment configuration
 
-## Source of Truth
-- This README is intended to be the canonical project summary for portfolio alignment.
-- If portfolio copy diverges from this file, update the portfolio entry to match current implementation reality.
